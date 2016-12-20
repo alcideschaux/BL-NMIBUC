@@ -1,0 +1,123 @@
+---
+title: "Basal and Luminal Markers in Non-Muscule Invasive Bladder Urothelial Carcinoma"
+author: "Alcides Chaux, M.D."
+subtitle: Preliminary Results
+output:
+  pdf_document: default
+  html_document:
+    theme: cerulean
+---
+
+***
+
+```{r Data, echo = FALSE}
+library(knitr)
+opts_chunk$set(echo = FALSE)
+load("../Data/DF.Rdata")
+library(moonBook)
+
+```
+
+## Methology
+The following markers were evaluated
+
+- CK5/6
+- CK20
+- CD44
+- GATA3
+- ER
+- HER2
+- Uroplakin
+
+For each marker, the percentage of positive cells (extent) was recorded. Markers were also categorized as High/Low expression using the mean as the cutoffpoint
+
+### Outcome endpoints
+The analysis was carried out using paired events. For any case, the paired event consisted in the pair formed by 2 consecutive diagnoses during follow up. Thus, a case could have one or more paired events. For each marker, the considered outcomes included:
+
+- __Tumor recurrence at next diagnosis:__ Tumor reappeared showing a similar or lower-grade/stage lession.
+- __Tumor recurrence at any time:__ Tumor had recurred at least once during follow-up.
+- __Tumor grade progression at next diagnosis:__ Tumor reappeared showing a higher-grade lession.
+- __Tumor grade progression at any time:__ Tumor had showed grade progression at least once during follow-up.
+- __Tumor stage progression at next diagnosis:__ Tumor reappeared showing a higher-stage lession.
+- __Tumor stage progression at any time:__ Tumor had showed stage progression at least once during follow-up.
+
+### Statistical analysis
+For the asssociation and outcome analysis we used the Student's t-test and the Pearson's Chi-squared test. Data was analyzed and plots were generated using `r R.version.string`.
+
+***
+
+## Results
+
+### Marker Extent and Level by Tumor Recurrence
+#### __Table 1:__ Recurrence at next diagnosis
+```{r}
+# rec_next_time
+mytable(
+  rec_next_time ~ ck56 + ck20 + cd44 + gata3 + er + her2 + uroplakin +
+    ck56_cat + ck20_cat + cd44_cat + gata3_cat + er_cat + her2_cat + uroplakin_cat,
+  data = DF)
+
+```
+
+***
+
+#### __Table 2:__ Recurrence at any time
+```{r}
+# rec_any_time
+mytable(
+  rec_any_time ~ ck56 + ck20 + cd44 + gata3 + er + her2 + uroplakin +
+    ck56_cat + ck20_cat + cd44_cat + gata3_cat + er_cat + her2_cat + uroplakin_cat,
+  data = DF)
+
+```
+
+***
+
+### Marker Extent and Level by Grade Progression
+#### __Table 3:__ Tumor grade progression at next diagnosis
+```{r}
+# grade_prog_next_time
+mytable(
+  grade_prog_next_time ~ ck56 + ck20 + cd44 + gata3 + er + her2 + uroplakin +
+    ck56_cat + ck20_cat + cd44_cat + gata3_cat + er_cat + her2_cat + uroplakin_cat,
+  data = DF)
+```
+
+***
+
+#### __Table 4:__ Tumor grade progression at any time
+
+```{r}
+# grade_prog_any_time
+mytable(
+  grade_prog_any_time ~ ck56 + ck20 + cd44 + gata3 + er + her2 + uroplakin +
+    ck56_cat + ck20_cat + cd44_cat + gata3_cat + er_cat + her2_cat + uroplakin_cat,
+  data = DF)
+```
+
+***
+
+### Marker Extend and Level by Stage Progression
+#### __Table 5:__ Tumor stage progression at next diagnosis
+```{r}
+# pT_upstage_next_time
+mytable(
+  pT_upstage_next_time ~ ck56 + ck20 + cd44 + gata3 + er + her2 + uroplakin +
+    ck56_cat + ck20_cat + cd44_cat + gata3_cat + er_cat + her2_cat + uroplakin_cat,
+  data = DF)
+```
+
+***
+
+#### __Table 5:__ Tumor stage progression at any time
+```{r}
+# pT_upstage_any_time
+mytable(
+  pT_upstage_any_time ~ ck56 + ck20 + cd44 + gata3 + er + her2 + uroplakin +
+    ck56_cat + ck20_cat + cd44_cat + gata3_cat + er_cat + her2_cat + uroplakin_cat,
+  data = DF)
+```
+
+***
+
+__Last updated:__ `r date()`
