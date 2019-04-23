@@ -1,0 +1,358 @@
+---
+jupyter:
+  jupytext:
+    formats: ipynb,Rmd
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.1'
+      jupytext_version: 1.1.1
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
+---
+
+# Survival analysis
+
+```{r}
+# Libraries
+suppressPackageStartupMessages(library(tidyverse))
+library(broom)
+library(survival)
+suppressPackageStartupMessages(library(survminer))
+
+# Global
+options(warn = -1)
+
+# Scripts
+source("summarize.R")
+
+# Data
+load("DF.Rdata")
+
+glimpse(DF)
+```
+
+```{r}
+# A function to define which statistics (v.g., median, max value) will be used for summarizing biomarkers expression
+# If needed, changing this function will update the approach for the entire analysis
+summarize_biomarker <- function(x) { mean(x, na.rm = TRUE) }
+
+# Tidying up the data and summarizing expression
+OUTCOME <- DF %>% 
+    group_by(sp_id) %>% 
+    summarize(
+        ck56 = summarize_biomarker(ck56),
+        cd44 = summarize_biomarker(cd44),
+        ck20 = summarize_biomarker(ck20),
+        er = summarize_biomarker(er),
+        her2 = summarize_biomarker(her2),
+        gata3 = summarize_biomarker(gata3),
+        uroplakin = summarize_biomarker(uroplakin),
+        pt_stage = unique(pt_stage),
+        fu_mo = unique(fu_mo),
+        recurrence_next = unique(recurrence_next),
+        recurrence_any = unique(recurrence_any),
+        progression_grade_next = unique(progression_grade_next),
+        progression_grade_any = unique(progression_grade_any),
+        progression_stage_next = unique(progression_stage_next),
+        progression_stage_any = unique(progression_stage_any)
+    ) %>% 
+    mutate(
+        pt = ifelse(
+          pt_stage == "Tis" | pt_stage == "Ta",
+          "Low pT stage (<pT1)", "High pT stage (pT1-pT2)"
+        ),
+        pt = fct_relevel(pt, "Low pT stage (<pT1)"),
+        ck56_level = ifelse(
+          ck56 > summarize_biomarker(ck56),
+          "High CK5/6 expression", "Low CK5/6 expression"
+        ),
+        ck56_level = fct_relevel(ck56_level, "Low CK5/6 expression"),
+        cd44_level = ifelse(
+          cd44 > summarize_biomarker(cd44),
+          "High CD44 expression", "Low CD44 expression"
+        ),
+        cd44_level = fct_relevel(cd44_level, "Low CD44 expression"),
+        ck20_level = ifelse(
+          ck20 > summarize_biomarker(ck20),
+          "High CK20 expression", "Low CK20 expression"
+        ),
+        ck20_level = fct_relevel(ck20_level, "Low CK20 expression"),
+        er_level = ifelse(
+          er > summarize_biomarker(er),
+          "High ER expression", "Low ER expression"
+        ),
+        er_level = fct_relevel(er_level, "Low CK20 expression"),
+        her2_level = ifelse(
+          her2 > summarize_biomarker(her2),
+          "High HER2 expression", "Low HER2 expression"
+        ),
+        her2_level = fct_relevel(her2_level, "Low HER2 expression"),
+        gata3_level = ifelse(
+          gata3 > summarize_biomarker(gata3),
+          "High GATA3 expression", "Low GATA3 expression"
+        ),
+        gata3_level = fct_relevel(gata3_level, "Low GATA3 expression"),
+        uroplakin_level = ifelse(
+          uroplakin > summarize_biomarker(uroplakin),
+          "High Uroplakin expression", "Low Uroplakin expression"
+        ),
+        uroplakin_level = fct_relevel(uroplakin_level, "Low Uroplakin expression")
+    )
+
+glimpse(OUTCOME)
+```
+
+## CK5/6
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker_level = ck56_level)
+```
+
+### Tumor recurrence at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, recurrence_next, biomarker_level)
+```
+
+### Tumor recurrence at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, recurrence_any, biomarker_level)
+```
+
+### Tumor grade progression at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_grade_next, biomarker_level)
+```
+
+### Tumor grade progression at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_grade_any, biomarker_level)
+```
+
+### Tumor stage progression at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_stage_next, biomarker_level)
+```
+
+### Tumor stage progression at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_stage_any, biomarker_level)
+```
+
+## CD44
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker_level = cd44_level)
+```
+
+### Tumor recurrence at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, recurrence_next, biomarker_level)
+```
+
+### Tumor recurrence at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, recurrence_any, biomarker_level)
+```
+
+### Tumor grade progression at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_grade_next, biomarker_level)
+```
+
+### Tumor grade progression at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_grade_any, biomarker_level)
+```
+
+### Tumor stage progression at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_stage_next, biomarker_level)
+```
+
+### Tumor stage progression at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_stage_any, biomarker_level)
+```
+
+## CK20
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker_level = ck20_level)
+```
+
+### Tumor recurrence at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, recurrence_next, biomarker_level)
+```
+
+### Tumor recurrence at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, recurrence_any, biomarker_level)
+```
+
+### Tumor grade progression at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_grade_next, biomarker_level)
+```
+
+### Tumor grade progression at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_grade_any, biomarker_level)
+```
+
+### Tumor stage progression at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_stage_next, biomarker_level)
+```
+
+### Tumor stage progression at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_stage_any, biomarker_level)
+```
+
+## ER
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker_level = er_level)
+```
+
+### Tumor recurrence at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, recurrence_next, biomarker_level)
+```
+
+### Tumor recurrence at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, recurrence_any, biomarker_level)
+```
+
+### Tumor grade progression at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_grade_next, biomarker_level)
+```
+
+### Tumor grade progression at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_grade_any, biomarker_level)
+```
+
+### Tumor stage progression at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_stage_next, biomarker_level)
+```
+
+### Tumor stage progression at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_stage_any, biomarker_level)
+```
+
+## HER2
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker_level = her2_level)
+```
+
+### Tumor recurrence at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, recurrence_next, biomarker_level)
+```
+
+### Tumor recurrence at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, recurrence_any, biomarker_level)
+```
+
+### Tumor grade progression at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_grade_next, biomarker_level)
+```
+
+### Tumor grade progression at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_grade_any, biomarker_level)
+```
+
+### Tumor stage progression at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_stage_next, biomarker_level)
+```
+
+### Tumor stage progression at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_stage_any, biomarker_level)
+```
+
+## GATA3
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker_level = gata3_level)
+```
+
+### Tumor recurrence at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, recurrence_next, biomarker_level)
+```
+
+### Tumor recurrence at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, recurrence_any, biomarker_level)
+```
+
+### Tumor grade progression at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_grade_next, biomarker_level)
+```
+
+### Tumor grade progression at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_grade_any, biomarker_level)
+```
+
+### Tumor stage progression at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_stage_next, biomarker_level)
+```
+
+### Tumor stage progression at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_stage_any, biomarker_level)
+```
+
+## Uroplakin
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker_level = uroplakin_level)
+```
+
+### Tumor recurrence at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, recurrence_next, biomarker_level)
+```
+
+### Tumor recurrence at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, recurrence_any, biomarker_level)
+```
+
+### Tumor grade progression at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_grade_next, biomarker_level)
+```
+
+### Tumor grade progression at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_grade_any, biomarker_level)
+```
+
+### Tumor stage progression at next biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_stage_next, biomarker_level)
+```
+
+### Tumor stage progression at any biopsy
+```{r fig.width=9}
+OUTCOME %>% summarize_surv(fu_mo, progression_stage_any, biomarker_level)
+```

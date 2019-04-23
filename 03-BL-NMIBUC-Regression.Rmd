@@ -1,0 +1,784 @@
+---
+jupyter:
+  jupytext:
+    formats: ipynb,Rmd
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.1'
+      jupytext_version: 1.1.1
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
+---
+
+# Regression models
+
+```{r}
+# Libraries
+suppressPackageStartupMessages(library(tidyverse))
+library(broom)
+library(survival)
+suppressPackageStartupMessages(library(survminer))
+
+# Global
+options(warn = -1)
+
+# Scripts
+source("summarize.R")
+
+# Data
+load("DF.Rdata")
+
+glimpse(DF)
+```
+
+```{r}
+# A function to define which statistics (v.g., median, max value) will be used for summarizing biomarkers expression
+# If needed, changing this function will update the approach for the entire analysis
+summarize_biomarker <- function(x) { mean(x, na.rm = TRUE) }
+
+# Tidying up the data and summarizing expression
+OUTCOME <- DF %>% 
+    group_by(sp_id) %>% 
+    summarize(
+        ck56 = summarize_biomarker(ck56),
+        cd44 = summarize_biomarker(cd44),
+        ck20 = summarize_biomarker(ck20),
+        er = summarize_biomarker(er),
+        her2 = summarize_biomarker(her2),
+        gata3 = summarize_biomarker(gata3),
+        uroplakin = summarize_biomarker(uroplakin),
+        pt_stage = unique(pt_stage),
+        fu_mo = unique(fu_mo),
+        recurrence_next = unique(recurrence_next),
+        recurrence_any = unique(recurrence_any),
+        progression_grade_next = unique(progression_grade_next),
+        progression_grade_any = unique(progression_grade_any),
+        progression_stage_next = unique(progression_stage_next),
+        progression_stage_any = unique(progression_stage_any)
+    ) %>% 
+    mutate(
+        pt = ifelse(
+          pt_stage == "Tis" | pt_stage == "Ta",
+          "Low pT stage (<pT1)", "High pT stage (pT1-pT2)"
+        ),
+        pt = fct_relevel(pt, "Low pT stage (<pT1)"),
+        ck56_level = ifelse(
+          ck56 > summarize_biomarker(ck56),
+          "High CK5/6 expression", "Low CK5/6 expression"
+        ),
+        ck56_level = fct_relevel(ck56_level, "Low CK5/6 expression"),
+        cd44_level = ifelse(
+          cd44 > summarize_biomarker(cd44),
+          "High CD44 expression", "Low CD44 expression"
+        ),
+        cd44_level = fct_relevel(cd44_level, "Low CD44 expression"),
+        ck20_level = ifelse(
+          ck20 > summarize_biomarker(ck20),
+          "High CK20 expression", "Low CK20 expression"
+        ),
+        ck20_level = fct_relevel(ck20_level, "Low CK20 expression"),
+        er_level = ifelse(
+          er > summarize_biomarker(er),
+          "High ER expression", "Low ER expression"
+        ),
+        er_level = fct_relevel(er_level, "Low CK20 expression"),
+        her2_level = ifelse(
+          her2 > summarize_biomarker(her2),
+          "High HER2 expression", "Low HER2 expression"
+        ),
+        her2_level = fct_relevel(her2_level, "Low HER2 expression"),
+        gata3_level = ifelse(
+          gata3 > summarize_biomarker(gata3),
+          "High GATA3 expression", "Low GATA3 expression"
+        ),
+        gata3_level = fct_relevel(gata3_level, "Low GATA3 expression"),
+        uroplakin_level = ifelse(
+          uroplakin > summarize_biomarker(uroplakin),
+          "High Uroplakin expression", "Low Uroplakin expression"
+        ),
+        uroplakin_level = fct_relevel(uroplakin_level, "Low Uroplakin expression")
+    )
+
+glimpse(OUTCOME)
+```
+
+## CK5/6
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker_level = ck56_level)
+OUTCOME %>% summarize_fct(biomarker_level)
+```
+
+### Tumor recurrence at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(recurrence_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(recurrence_next ~ biomarker_level + pt)
+```
+
+### Tumor recurrence at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(recurrence_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(recurrence_any ~ biomarker_level + pt)
+```
+
+### Tumor grade progression at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_grade_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_grade_next ~ biomarker_level + pt)
+```
+
+### Tumor grade progression at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_grade_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_grade_any ~ biomarker_level + pt)
+```
+
+### Tumor stage progression at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_stage_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_stage_next ~ biomarker_level + pt)
+```
+
+### Tumor stage progression at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_stage_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_stage_any ~ biomarker_level + pt)
+```
+
+## CD44
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker_level = cd44_level)
+OUTCOME %>% summarize_fct(biomarker_level)
+```
+
+### Tumor recurrence at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(recurrence_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(recurrence_next ~ biomarker_level + pt)
+```
+
+### Tumor recurrence at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(recurrence_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(recurrence_any ~ biomarker_level + pt)
+```
+
+### Tumor grade progression at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_grade_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_grade_next ~ biomarker_level + pt)
+```
+
+### Tumor grade progression at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_grade_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_grade_any ~ biomarker_level + pt)
+```
+
+### Tumor stage progression at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_stage_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_stage_next ~ biomarker_level + pt)
+```
+
+### Tumor stage progression at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_stage_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_stage_any ~ biomarker_level + pt)
+```
+
+## CK20
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker_level = ck20_level)
+OUTCOME %>% summarize_fct(biomarker_level)
+```
+
+### Tumor recurrence at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(recurrence_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(recurrence_next ~ biomarker_level + pt)
+```
+
+### Tumor recurrence at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(recurrence_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(recurrence_any ~ biomarker_level + pt)
+```
+
+### Tumor grade progression at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_grade_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_grade_next ~ biomarker_level + pt)
+```
+
+### Tumor grade progression at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_grade_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_grade_any ~ biomarker_level + pt)
+```
+
+### Tumor stage progression at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_stage_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_stage_next ~ biomarker_level + pt)
+```
+
+### Tumor stage progression at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_stage_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_stage_any ~ biomarker_level + pt)
+```
+
+## ER
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker_level = er_level)
+OUTCOME %>% summarize_fct(biomarker_level)
+```
+
+### Tumor recurrence at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(recurrence_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(recurrence_next ~ biomarker_level + pt)
+```
+
+### Tumor recurrence at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(recurrence_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(recurrence_any ~ biomarker_level + pt)
+```
+
+### Tumor grade progression at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_grade_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_grade_next ~ biomarker_level + pt)
+```
+
+### Tumor grade progression at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_grade_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_grade_any ~ biomarker_level + pt)
+```
+
+### Tumor stage progression at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_stage_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_stage_next ~ biomarker_level + pt)
+```
+
+### Tumor stage progression at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_stage_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_stage_any ~ biomarker_level + pt)
+```
+
+## HER2
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker_level = her2_level)
+OUTCOME %>% summarize_fct(biomarker_level)
+```
+
+### Tumor recurrence at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(recurrence_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(recurrence_next ~ biomarker_level + pt)
+```
+
+### Tumor recurrence at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(recurrence_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(recurrence_any ~ biomarker_level + pt)
+```
+
+### Tumor grade progression at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_grade_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_grade_next ~ biomarker_level + pt)
+```
+
+### Tumor grade progression at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_grade_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_grade_any ~ biomarker_level + pt)
+```
+
+### Tumor stage progression at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_stage_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_stage_next ~ biomarker_level + pt)
+```
+
+### Tumor stage progression at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_stage_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_stage_any ~ biomarker_level + pt)
+```
+
+## GATA3
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker_level = gata3_level)
+OUTCOME %>% summarize_fct(biomarker_level)
+```
+
+### Tumor recurrence at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(recurrence_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(recurrence_next ~ biomarker_level + pt)
+```
+
+### Tumor recurrence at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(recurrence_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(recurrence_any ~ biomarker_level + pt)
+```
+
+### Tumor grade progression at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_grade_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_grade_next ~ biomarker_level + pt)
+```
+
+### Tumor grade progression at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_grade_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_grade_any ~ biomarker_level + pt)
+```
+
+### Tumor stage progression at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_stage_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_stage_next ~ biomarker_level + pt)
+```
+
+### Tumor stage progression at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_stage_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_stage_any ~ biomarker_level + pt)
+```
+
+## Uroplakin
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker_level = uroplakin_level)
+OUTCOME %>% summarize_fct(biomarker_level)
+```
+
+### Tumor recurrence at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(recurrence_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(recurrence_next ~ biomarker_level + pt)
+```
+
+### Tumor recurrence at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(recurrence_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(recurrence_any ~ biomarker_level + pt)
+```
+
+### Tumor grade progression at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_grade_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_grade_next ~ biomarker_level + pt)
+```
+
+### Tumor grade progression at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_grade_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_grade_any ~ biomarker_level + pt)
+```
+
+### Tumor stage progression at next biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_stage_next ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_stage_next ~ biomarker_level + pt)
+```
+
+### Tumor stage progression at any biopsy
+#### Unadjusted
+```{r}
+OUTCOME %>% OR(progression_stage_any ~ biomarker_level)
+```
+
+#### Adjusted by pT stage (low vs high)
+```{r}
+OUTCOME %>% OR(progression_stage_any ~ biomarker_level + pt)
+```
+
+## Summary plot
+Expression of ER and GATA3 were excluded from analysis, considering that most tumor cells lacked ER expression and most tumor cells were GATA3 positive.
+```{r}
+# A function to estimate odds ratios using binomial logistic regression
+OR_tbl <- function(data, formula, marker, outcome, ...) {
+  
+  mdl <- glm(as.formula(formula), data = data, family = "binomial", ...)
+  mdl_coef <- tidy(mdl) %>% 
+    mutate(
+      estimate = round(estimate, digits = 2),
+      std.error = round(std.error, digits = 2),
+      statistic = round(statistic, digits = 2),
+      or = round(exp(estimate), digits = 2)
+    )
+  mdl_confint <- exp(confint_tidy(mdl)) %>% round(digits = 2)
+  mdl_tbl <- bind_cols(mdl_coef, mdl_confint) %>% 
+    select(or, conf.low, conf.high) %>% 
+    mutate(
+        marker = paste(marker),
+        outcome = paste(outcome)
+    )
+  
+  return(mdl_tbl[2 , ])
+
+}
+```
+
+### Tumor recurrence at next biopsy
+```{r}
+outcome_str <- "Recurrence at next biopsy"
+outcome_ck56 <- OUTCOME %>% OR_tbl(recurrence_next ~ ck56 + pt, "CK5/6", outcome_str)
+outcome_ck20 <- OUTCOME %>% OR_tbl(recurrence_next ~ ck20 + pt, "CK20", outcome_str)
+outcome_cd44 <- OUTCOME %>% OR_tbl(recurrence_next ~ cd44 + pt, "CD44", outcome_str)
+outcome_her2 <- OUTCOME %>% OR_tbl(recurrence_next ~ her2 + pt, "Her2", outcome_str)
+outcome_uroplk <- OUTCOME %>% OR_tbl(recurrence_next ~ uroplakin + pt, "Uroplakin", outcome_str)
+
+recurrence_next_marker <- bind_rows(
+    outcome_uroplk, outcome_her2, outcome_ck20, outcome_cd44, outcome_ck56
+)
+
+print(recurrence_next_marker)
+```
+
+### Tumor recurrence at any biopsy
+```{r}
+outcome_str <- "Recurrence at any biopsy"
+outcome_ck56 <- OUTCOME %>% OR_tbl(recurrence_any ~ ck56 + pt, "CK5/6", outcome_str)
+outcome_ck20 <- OUTCOME %>% OR_tbl(recurrence_any ~ ck20 + pt, "CK20", outcome_str)
+outcome_cd44 <- OUTCOME %>% OR_tbl(recurrence_any ~ cd44 + pt, "CD44", outcome_str)
+outcome_her2 <- OUTCOME %>% OR_tbl(recurrence_any ~ her2 + pt, "Her2", outcome_str)
+outcome_uroplk <- OUTCOME %>% OR_tbl(recurrence_any ~ uroplakin + pt, "Uroplakin", outcome_str)
+
+recurrence_any_marker <- bind_rows(
+    outcome_uroplk, outcome_her2, outcome_ck20, outcome_cd44, outcome_ck56
+)
+
+print(recurrence_any_marker)
+```
+
+### Tumor stage progression at next biopsy
+```{r}
+outcome_str <- "Tumor stage progression at next biopsy"
+outcome_ck56 <- OUTCOME %>% OR_tbl(progression_stage_next ~ ck56 + pt, "CK5/6", outcome_str)
+outcome_ck20 <- OUTCOME %>% OR_tbl(progression_stage_next ~ ck20 + pt, "CK20", outcome_str)
+outcome_cd44 <- OUTCOME %>% OR_tbl(progression_stage_next ~ cd44 + pt, "CD44", outcome_str)
+outcome_her2 <- OUTCOME %>% OR_tbl(progression_stage_next ~ her2 + pt, "Her2", outcome_str)
+outcome_uroplk <- OUTCOME %>% OR_tbl(progression_stage_next ~ uroplakin + pt, "Uroplakin", outcome_str)
+
+progression_stage_next_marker <- bind_rows(
+    outcome_uroplk, outcome_her2, outcome_ck20, outcome_cd44, outcome_ck56
+)
+
+print(progression_stage_next_marker)
+```
+
+### Tumor stage progression at any biopsy
+```{r}
+outcome_str <- "Tumor stage progression at any biopsy"
+outcome_ck56 <- OUTCOME %>% OR_tbl(progression_stage_any ~ ck56 + pt, "CK5/6", outcome_str)
+outcome_ck20 <- OUTCOME %>% OR_tbl(progression_stage_any ~ ck20 + pt, "CK20", outcome_str)
+outcome_cd44 <- OUTCOME %>% OR_tbl(progression_stage_any ~ cd44 + pt, "CD44", outcome_str)
+outcome_her2 <- OUTCOME %>% OR_tbl(progression_stage_any ~ her2 + pt, "Her2", outcome_str)
+outcome_uroplk <- OUTCOME %>% OR_tbl(progression_stage_any ~ uroplakin + pt, "Uroplakin", outcome_str)
+
+progression_stage_any_marker <- bind_rows(
+    outcome_uroplk, outcome_her2, outcome_ck20, outcome_cd44, outcome_ck56
+)
+
+print(progression_stage_any_marker)
+```
+
+### Tumor grade progression at next biopsy
+```{r}
+outcome_str <- "Tumor grade progression at next biopsy"
+outcome_ck56 <- OUTCOME %>% OR_tbl(progression_grade_next ~ ck56 + pt, "CK5/6", outcome_str)
+outcome_ck20 <- OUTCOME %>% OR_tbl(progression_grade_next ~ ck20 + pt, "CK20", outcome_str)
+outcome_cd44 <- OUTCOME %>% OR_tbl(progression_grade_next ~ cd44 + pt, "CD44", outcome_str)
+outcome_her2 <- OUTCOME %>% OR_tbl(progression_grade_next ~ her2 + pt, "Her2", outcome_str)
+outcome_uroplk <- OUTCOME %>% OR_tbl(progression_grade_next ~ uroplakin + pt, "Uroplakin", outcome_str)
+
+progression_grade_next_marker <- bind_rows(
+    outcome_uroplk, outcome_her2, outcome_ck20, outcome_cd44, outcome_ck56
+)
+
+print(progression_grade_next_marker)
+```
+
+### Tumor grade progression at any biopsy
+```{r}
+outcome_str <- "Tumor grade progression at any biopsy"
+outcome_ck56 <- OUTCOME %>% OR_tbl(progression_grade_any ~ ck56 + pt, "CK5/6", outcome_str)
+outcome_ck20 <- OUTCOME %>% OR_tbl(progression_grade_any ~ ck20 + pt, "CK20", outcome_str)
+outcome_cd44 <- OUTCOME %>% OR_tbl(progression_grade_any ~ cd44 + pt, "CD44", outcome_str)
+outcome_her2 <- OUTCOME %>% OR_tbl(progression_grade_any ~ her2 + pt, "Her2", outcome_str)
+outcome_uroplk <- OUTCOME %>% OR_tbl(progression_grade_any ~ uroplakin + pt, "Uroplakin", outcome_str)
+
+progression_grade_any_marker <- bind_rows(
+    outcome_uroplk, outcome_her2, outcome_ck20, outcome_cd44, outcome_ck56
+)
+
+print(progression_grade_any_marker)
+```
+
+### Final table
+```{r}
+outcome_marker <- bind_rows(
+  recurrence_next_marker,
+  recurrence_any_marker,
+  progression_grade_next_marker,
+  progression_grade_any_marker,
+  progression_stage_next_marker,
+  progression_stage_any_marker
+)
+
+print(outcome_marker)
+```
+
+### Plot
+Forest plots of biomarkers by outcome. Odds ratios (dots) with 95% confidence intervals (error bars) of expression levels and outcome. The dashed line corresponds to an odds ratio of 1. Odds ratios were adjusted by pT stage
+```{r}
+options(repr.plot.width = 10, repr.plot.height = 10)
+
+g <- ggplot(outcome_marker, aes(x = marker, y = or, ymin = conf.low, ymax = conf.high)) +
+    geom_pointrange() +
+    geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) +
+    geom_hline(yintercept = 1, linetype = 2) +
+    facet_wrap(~ outcome, ncol = 2) +
+    coord_flip() +
+    labs(x = "", y = "")
+
+OR_plot <- gridExtra::grid.arrange(
+    g,
+    ncol = 1
+)
+```
+
+
+```{r}
+ggsave(
+  filename = "Figs/BL-NMIBUC-OR.png",
+  plot = OR_plot,
+  width = 10,
+  height = 10,
+  units = "in"
+)
+```

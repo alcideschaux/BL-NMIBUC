@@ -1,0 +1,279 @@
+---
+jupyter:
+  jupytext:
+    formats: ipynb,Rmd
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.1'
+      jupytext_version: 1.1.1
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
+---
+
+# Patterns of expression and outcome
+Cases were grouped into 2 patterns of expression, basal or luminal, depending on the average values of the corresponding markers. Two approaches were used for classifying cases as either basal or luminal, as detailed below. Basal markers included CK5/6 and CD44. Luminal markers included CK20 and uroplakin.
+
+```{r}
+# Libraries
+suppressPackageStartupMessages(library(tidyverse))
+library(RColorBrewer)
+
+# Global
+options(warn = -1)
+
+# Scripts
+source("summarize.R")
+
+# Data
+load("DF.Rdata")
+
+glimpse(DF)
+```
+
+## Pattern 1: Maximum average value
+A case was classified as having a basal pattern if CK5/6 or CD44 showed the highest average value among all markers, and as having a luminal pattern if CK20 or uroplakin showed the highest average value among all markers.
+
+```{r}
+PATTERN_1 <- DF %>% 
+  gather(biomarker, expression, ck56, cd44, ck20, uroplakin, na.rm = TRUE) %>% 
+  mutate(biomarker = factor(biomarker)) %>% 
+  group_by(sp_id, biomarker) %>% 
+  summarize(
+    expression = mean(expression, na.rm = TRUE),
+    recurrence_next = unique(recurrence_next),
+    recurrence_any = unique(recurrence_any),
+    grade_next = unique(progression_grade_next),
+    grade_any = unique(progression_grade_any),
+    stage_next = unique(progression_stage_next),
+    stage_any = unique(progression_stage_any)
+  ) %>% 
+  # Selecting rows showing the maximum median expression
+  slice(which.max(expression)) %>% 
+  # Recoding the labels according to biomarker type (basal vs luminal)
+  mutate(
+    biomarker = fct_recode(biomarker,
+      "Basal" = "ck56",
+      "Basal" = "cd44",
+      "Luminal" = "ck20",
+      "Luminal" = "uroplakin"
+    )
+  ) %>% 
+  ungroup()
+
+glimpse(PATTERN_1)
+```
+
+```{r}
+# A function to create filled bar plots with P values
+
+plot_bar <- function(data, pattern, outcome) {
+  
+  # Creating the dataset
+  pattern = enquo(pattern)
+  outcome = enquo(outcome)
+  df <- data %>%
+    select(pattern = !! pattern, outcome = !! outcome)
+  
+  # Estimating P value using the chi-squared test
+  pval <- with(df, chisq.test(pattern, outcome))$p.value %>% 
+    formatC(digits = 2, format = "fg", flag = "#")
+  
+  # Ploting the bars
+  g <- df %>% 
+    filter(!is.na(outcome)) %>% 
+    ggplot(aes(x = pattern, fill = outcome)) +
+    geom_bar(position = "fill", color = "black", size = 0.25) +
+    scale_fill_brewer(palette = "Blues") +
+    labs(x = "", y = "") +
+    theme(legend.position = "none") +
+    annotate("label", label = paste0("P=", pval), x = 1.5, y = 1)
+  
+  # Returning the plot object
+  return(g)
+
+}
+```
+
+### Tumor recurrence at next biopsy
+```{r}
+Pattern_1A <- PATTERN_1 %>% plot_bar(biomarker, recurrence_next) +
+  labs(title = "Tumor recurrence at next biopsy", tag = "A")
+
+Pattern_1A
+```
+
+### Tumor recurrence at any biopsy
+```{r}
+Pattern_1B <- PATTERN_1 %>% plot_bar(biomarker, recurrence_any) +
+  labs(title = "Tumor recurrence at any biopsy", tag = "B")
+
+Pattern_1B
+```
+
+### Tumor grade progression at next biopsy
+```{r}
+Pattern_1C <- PATTERN_1 %>% plot_bar(biomarker, grade_next) +
+  labs(title = "Tumor grade progression at next biopsy", tag = "C")
+
+Pattern_1C
+```
+
+### Tumor grade progression at any biopsy
+```{r}
+Pattern_1D <- PATTERN_1 %>% plot_bar(biomarker, grade_any) +
+  labs(title = "Tumor grade progression at any biopsy", tag = "D")
+
+Pattern_1D
+```
+
+### Tumor stage progression at next biopsy
+```{r}
+Pattern_1E <- PATTERN_1 %>% plot_bar(biomarker, stage_next) +
+  labs(title = "Tumor stage progression at next biopsy", tag = "E")
+
+Pattern_1E
+```
+
+### Tumor stage progression at any biopsy
+```{r}
+Pattern_1F <- PATTERN_1 %>% plot_bar(biomarker, stage_any) +
+  labs(title = "Tumor stage progression at any biopsy", tag = "F")
+
+Pattern_1F
+```
+
+### Combined plots
+**Basal vs luminal expression and outcome.** Each case was categorized as having either a basal or luminal pattern based on which marker had the highest mean value. A case was categorized as having a basal pattern if CK5/6 or CD44 showed the highest mean value. A case was categorized as having a luminal pattern if CK20 or uroplakin showed the highest mean value. Lighter bars correspond to presence of the event (i.e., recurrence or progression) while darker bars correspond to absence of the event. Labels on top of the bars correspond to P values from chi-squared tests.
+
+```{r}
+options(repr.plot.width = 12, repr.plot.height = 12)
+
+Pattern_1 <- gridExtra::grid.arrange(
+  Pattern_1A, Pattern_1B, Pattern_1C, Pattern_1D, Pattern_1E, Pattern_1F,
+  ncol = 2
+)
+```
+
+```{r}
+ggsave(
+  filename = "Figs/BL-NMIBUC-Pattern1.png",
+  Pattern_1,
+  width = 12,
+  height = 12,
+  units = "in"
+)
+```
+
+## Pattern 2: Maximum value of the sum of means
+Each case was categorized as having a basal or luminal pattern based on which group of markers had the highest sum of mean values. A case was categorized as having a basal pattern if the sum of the mean values of CK5/6 and CD44 was higher than the sum of the mean values of CK20 and uroplakin. The case was categorized as having aluminal pattern otherwise.
+
+```{r}
+options(repr.plot.width = 7, repr.plot.height = 7)
+
+PATTERN_2 <- DF %>% 
+  # Gathering the data to calculate mean values by SP and biomarker
+  gather(biomarker, expression, ck56, cd44, ck20, uroplakin, na.rm = TRUE) %>% 
+  group_by(sp_id, biomarker) %>% 
+  summarize(
+    expression = mean(expression, na.rm = TRUE),
+    recurrence_next = unique(recurrence_next),
+    recurrence_any = unique(recurrence_any),
+    grade_next = unique(progression_grade_next),
+    grade_any = unique(progression_grade_any),
+    stage_next = unique(progression_stage_next),
+    stage_any = unique(progression_stage_any)
+  ) %>% 
+  # Spreading the data to sum the rows of basal and luminal marker values
+  spread(key = biomarker, value = expression) %>% 
+  mutate(
+    ck56cd44 = ck56 + cd44,
+    ck20uroplakin = ck20 + uroplakin
+  ) %>% 
+# Gathering again the data to select rows with the maximum value
+  gather(biomarker, expression, ck56cd44, ck20uroplakin) %>% 
+  mutate (biomarker = factor(biomarker)) %>% 
+  slice(which.max(expression)) %>% 
+  # Recoding the labels according to biomarker type (basal vs luminal)
+  mutate(
+    biomarker = fct_recode(biomarker,
+      "Basal" = "ck56cd44",
+      "Luminal" = "ck20uroplakin"
+    )
+  ) %>% 
+  ungroup()
+
+glimpse(PATTERN_2)
+```
+
+### Tumor recurrence at next biopsy
+```{r}
+Pattern_2A <- PATTERN_2 %>% plot_bar(biomarker, recurrence_next) +
+  labs(title = "Tumor recurrence at next biopsy", tag = "A")
+
+Pattern_2A
+```
+
+### Tumor recurrence at any biopsy
+```{r}
+Pattern_2B <- PATTERN_2 %>% plot_bar(biomarker, recurrence_any) +
+  labs(title = "Tumor recurrence at any biopsy", tag = "B")
+
+Pattern_2B
+```
+
+### Tumor grade progression at next biopsy
+```{r}
+Pattern_2C <- PATTERN_2 %>% plot_bar(biomarker, grade_next) +
+  labs(title = "Tumor grade progression at next biopsy", tag = "C")
+
+Pattern_2C
+```
+
+### Tumor grade progression at any biopsy
+```{r}
+Pattern_2D <- PATTERN_2 %>% plot_bar(biomarker, grade_any) +
+  labs(title = "Tumor grade progression at any biopsy", tag = "D")
+
+Pattern_2D
+```
+
+### Tumor stage progression at next biopsy
+```{r}
+Pattern_2E <- PATTERN_2 %>% plot_bar(biomarker, stage_next) +
+  labs(title = "Tumor stage progression at next biopsy", tag = "E")
+
+Pattern_2E
+```
+
+### Tumor stage progression at any biopsy
+```{r}
+Pattern_2F <- PATTERN_2 %>% plot_bar(biomarker, stage_any) +
+  labs(title = "Tumor stage progression at any biopsy", tag = "F")
+
+Pattern_2F
+```
+
+### Combined plots
+**Basal vs luminal expression and outcome.** Each case was categorized as having either basal or luminal pattern based on which group of markers had the highest sum of mean values. A case was categorized as having a basal pattern if the sum of the mean values of CK5/6 and CD44 was higher than the sum of mean values of CK20 and uroplakin. The case was categorized as having a luminal pattern otherwise. Lighter bars correspond to presence of the event (i.e., recurrence or progression) while darker bars correspond to absence of the event. Labels on top of the bars correspond to P values from chi-squared tests.
+
+```{r}
+options(repr.plot.width = 12, repr.plot.height = 12)
+
+Pattern_2 <- gridExtra::grid.arrange(
+  Pattern_2A, Pattern_2B, Pattern_2C, Pattern_2D, Pattern_2E, Pattern_2F,
+  ncol = 2
+)
+```
+
+```{r}
+ggsave(
+  filename = "Figs/BL-NMIBUC-Pattern2.png",
+  Pattern_2,
+  width = 12,
+  height = 12,
+  units = "in"
+)
+```

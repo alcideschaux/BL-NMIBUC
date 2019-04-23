@@ -1,0 +1,131 @@
+# Cohort features
+
+```{r}
+# Libraries
+suppressPackageStartupMessages(library(tidyverse))
+
+# Global
+options(warn = -1)
+
+# Scripts
+source("summarize.R")
+
+# Data
+load("DF.Rdata")
+
+glimpse(DF)
+```
+
+## Clinical and outcome features
+Clinical and outcome features are analyzed at the patient level.
+
+```{r}
+# Tidying up the clinical data
+CLINICAL <- DF %>% 
+    group_by(registry_id) %>% 
+    select(
+        registry_id,
+        age_dx,
+        sex,
+        fu_mo,
+        recurrence_any,
+        progression_stage_any,
+        progression_grade_any,
+        death
+    ) %>% 
+    distinct() %>%
+    ungroup()
+
+glimpse(CLINICAL)
+```
+
+### Age, in years
+```{r}
+CLINICAL %>% summarize_num(age_dx)
+```
+
+### Sex
+```{r}
+CLINICAL %>% summarize_fct(sex)
+```
+
+### Follow-up, in months
+```{r}
+CLINICAL %>% summarize_num(fu_mo)
+```
+
+### Tumor recurrence at any biopsy
+```{r}
+CLINICAL %>% summarize_fct(recurrence_any)
+```
+
+### Tumor grade progression at any biopsy
+```{r}
+CLINICAL %>% summarize_fct(progression_grade_any)
+```
+
+### Tumor stage progression at any biopsy
+```{r}
+CLINICAL %>% summarize_fct(progression_stage_any)
+```
+
+### Overall mortality
+```{r}
+CLINICAL %>% summarize_fct(death)
+```
+
+## Pathologic features
+This section includes the pathologic features of the cases that were included in the dataset. For the histologic diagnosis, "CIS" includes carcinoma in situ and dysplasia, "LG" and "HG" mean low-grade and high-grade noninvasive papillary urothelial carcinoma, respectively.
+
+```{r}
+# Tidying up the pathologic data
+PATHOLOGIC <- DF %>% 
+    group_by(sp_id) %>% 
+    select(
+        sp_id,
+        histo_dx,
+        pt_stage,
+        recurrence_next,
+        progression_grade_next,
+        progression_stage_next
+    ) %>% 
+    distinct() %>% 
+    ungroup()
+
+glimpse (PATHOLOGIC)
+```
+
+### Histologic diagnosis
+```{r}
+PATHOLOGIC %>% summarize_fct(histo_dx)
+```
+
+### pT stage
+```{r}
+PATHOLOGIC %>% summarize_fct(pt_stage)
+```
+
+### Tumor recurrence at next biopsy
+```{r}
+PATHOLOGIC %>% summarize_fct(recurrence_next)
+```
+
+### Tumor grade progression at next biopsy
+```{r}
+PATHOLOGIC %>% summarize_fct(progression_grade_next)
+```
+
+### Tumor stage progression at next biopsy
+```{r}
+PATHOLOGIC %>% summarize_fct(progression_stage_next)
+```
+
+## Biomarkers features
+Biomarkers features were established at the TMA level.
+
+```{r}
+DF %>% 
+    select(ck56:uroplakin) %>% 
+    gather(key = "Biomarker", value = "Expression") %>% 
+    summarize_nums(Expression, Biomarker)
+```
