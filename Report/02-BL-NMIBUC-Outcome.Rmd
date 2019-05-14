@@ -414,22 +414,36 @@ glimpse(ASSOCIATION)
 ```
 
 ### Overall expression
+**Overall marker expression.** Distribution of markers expression with percentage of positive tumor cells at each TMA spot in the y axis.
+
 ```{r}
+options(repr.plot.width = 12, repr.plot.height = 5)
+
 Plot_A <- ggplot(ASSOCIATION, aes(x = biomarker, y = expression, fill = biomarker)) +
   geom_boxplot() +
   scale_fill_manual(values = rep(brewer.pal(3, "Blues"), times = 4)) +
   labs(
-    x = "", y = "",
-    title = "Distribution of biomarkers expression",
-    tag = "A"
+    x = NULL, y = NULL
   ) +
   theme(
-    plot.caption = element_text(hjust = 0.5, size = 14),
     legend.position = "None"
   )
 
 Plot_A
 ```
+
+```{r}
+# Saving the plot
+ggsave(
+    filename = "Figs/BL-NMIBUC-Association-Overall.png",
+    width = 12,
+    height = 5,
+    units = "in"
+)
+```
+
+### Marker expression and outcome
+**Markers expression and outcome.** A-F) Association of outcome and markers expression, with median percentage of positive tumor cells per case in the y axis. Lighter boxplots correspond to presence of the event (i.e., recurrence or progression) while darker boxplots correspond to absence of the event. Labels on top of the boxplots correspond to adjusted (Bonferroni's method) P values from Mann-Whitney's U tests.
 
 ```{r}
 ## A function to plot boxplots of biomarkers expression by outcome
@@ -468,66 +482,27 @@ plot_association <- function(data, biomarker, expression, outcome) {
       annotate("label", label = paste0("P=", pfig), x = 1:5, y = 95)
   
   return(g)
-  
 }
 ```
-
-### Tumor recurrence at next biopsy
-```{r}
-Plot_B <- ASSOCIATION %>% plot_association(biomarker, expression, recurrence_next) +
-  labs(title = "Tumor recurrence at next biopsy", tag = "B")
-
-Plot_B
-```
-
-### Tumor recurrence at any biopsy
-```{r}
-Plot_C <- ASSOCIATION %>% plot_association(biomarker, expression, recurrence_any) +
-  labs(title = "Tumor recurrence at any biopsy", tag = "C")
-
-Plot_C
-```
-
-### Tumor grade progression at next biopsy
-```{r}
-Plot_D <- ASSOCIATION %>% plot_association(biomarker, expression, progression_grade_next) +
-  labs(title = "Tumor grade progression at next biopsy", tag = "D")
-
-Plot_D
-```
-
-### Tumor grade progression at any biopsy
-```{r}
-Plot_E <- ASSOCIATION %>% plot_association(biomarker, expression, progression_grade_any) +
-  labs(title = "Tumor grade progression at any biopsy", tag = "E")
-
-Plot_E
-```
-
-### Tumor stage progression at next biopsy
-```{r}
-Plot_F <- ASSOCIATION %>% plot_association(biomarker, expression, progression_stage_next) +
-  labs(title = "Tumor stage progression at next biopsy", tag = "F")
-
-Plot_F
-```
-
-### Tumor stage progression at any biopsy
-```{r}
-Plot_G <- ASSOCIATION %>% plot_association(biomarker, expression, progression_stage_any) +
-  labs(title = "Tumor stage progression at any biopsy", tag = "G")
-
-Plot_G
-```
-
-### Combined plots
-**Markers expression and outcome.** A) Distribution of markers expression with percentage of positive tumor cells at each TMA spot in the y axis. B-G) Association of outcome and markers expression, with median percentage of positive tumor cells per case in the y axis. Lighter boxplots correspond to presence of the event (i.e., recurrence or progression) while darker boxplots correspond to absence of the event. Labels on top of the boxplots correspond to adjusted (Bonferroni's method) P values from Mann-Whitney's U tests.
 
 ```{r}
 options(repr.plot.width = 12, repr.plot.height = 20)
 
+Plot_B <- ASSOCIATION %>% plot_association(biomarker, expression, recurrence_next) +
+  labs(title = "Tumor recurrence at next biopsy", tag = "A")
+Plot_C <- ASSOCIATION %>% plot_association(biomarker, expression, recurrence_any) +
+  labs(title = "Tumor recurrence at any biopsy", tag = "B")
+Plot_D <- ASSOCIATION %>% plot_association(biomarker, expression, progression_grade_next) +
+  labs(title = "Tumor grade progression at next biopsy", tag = "C")
+Plot_E <- ASSOCIATION %>% plot_association(biomarker, expression, progression_grade_any) +
+  labs(title = "Tumor grade progression at any biopsy", tag = "D")
+Plot_F <- ASSOCIATION %>% plot_association(biomarker, expression, progression_stage_next) +
+  labs(title = "Tumor stage progression at next biopsy", tag = "E")
+Plot_G <- ASSOCIATION %>% plot_association(biomarker, expression, progression_stage_any) +
+  labs(title = "Tumor stage progression at any biopsy", tag = "F")
+
 Plot_Panel <- gridExtra::grid.arrange(
-  Plot_A, Plot_B, Plot_C, Plot_D, Plot_E, Plot_F, Plot_G,
+  Plot_B, Plot_C, Plot_D, Plot_E, Plot_F, Plot_G,
   ncol = 1
 )
 ```
@@ -535,7 +510,7 @@ Plot_Panel <- gridExtra::grid.arrange(
 ```{r}
 # Saving the plot
 ggsave(
-  filename = "Figs/BL-NMIBUC-Association.png",
+  filename = "Figs/BL-NMIBUC-Association-Outcome.png",
   plot = Plot_Panel,
   width = 12,
   height = 20,

@@ -1,0 +1,657 @@
+---
+jupyter:
+  jupytext:
+    formats: ipynb,Rmd
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.1'
+      jupytext_version: 1.1.1
+  kernelspec:
+    display_name: R
+    language: R
+    name: ir
+---
+
+# Association with outcomes
+Analysis was carried out at the pathologic case level.
+
+```{r}
+# Libraries
+suppressPackageStartupMessages(library(tidyverse))
+library(broom)
+library(survival)
+suppressPackageStartupMessages(library(survminer))
+
+# Global
+options(warn = -1)
+
+# Scripts
+source("summarize.R")
+
+# Data
+load("DF.Rdata")
+
+glimpse(DF)
+```
+
+```{r}
+# A function to define which statistics (v.g., median, max value) will be used for summarizing biomarkers expression
+# If needed, changing this function will update the approach for the entire analysis
+summarize_biomarker <- function(x) { mean(x, na.rm = TRUE) }
+
+# Tidying up the data and summarizing expression
+OUTCOME <- DF %>% 
+    group_by(sp_id) %>% 
+    summarize(
+        ck56 = summarize_biomarker(ck56),
+        cd44 = summarize_biomarker(cd44),
+        ck20 = summarize_biomarker(ck20),
+        er = summarize_biomarker(er),
+        her2 = summarize_biomarker(her2),
+        gata3 = summarize_biomarker(gata3),
+        uroplakin = summarize_biomarker(uroplakin),
+        pt_stage = unique(pt_stage),
+        fu_mo = unique(fu_mo),
+        recurrence_next = unique(recurrence_next),
+        recurrence_any = unique(recurrence_any),
+        progression_grade_next = unique(progression_grade_next),
+        progression_grade_any = unique(progression_grade_any),
+        progression_stage_next = unique(progression_stage_next),
+        progression_stage_any = unique(progression_stage_any)
+    ) %>% 
+    mutate(
+        pt = ifelse(
+          pt_stage == "Tis" | pt_stage == "Ta",
+          "Low pT stage (<pT1)", "High pT stage (pT1-pT2)"
+        ),
+        pt = fct_relevel(pt, "Low pT stage (<pT1)"),
+        ck56_level = ifelse(
+          ck56 > summarize_biomarker(ck56),
+          "High CK5/6 expression", "Low CK5/6 expression"
+        ),
+        ck56_level = fct_relevel(ck56_level, "Low CK5/6 expression"),
+        cd44_level = ifelse(
+          cd44 > summarize_biomarker(cd44),
+          "High CD44 expression", "Low CD44 expression"
+        ),
+        cd44_level = fct_relevel(cd44_level, "Low CD44 expression"),
+        ck20_level = ifelse(
+          ck20 > summarize_biomarker(ck20),
+          "High CK20 expression", "Low CK20 expression"
+        ),
+        ck20_level = fct_relevel(ck20_level, "Low CK20 expression"),
+        er_level = ifelse(
+          er > summarize_biomarker(er),
+          "High ER expression", "Low ER expression"
+        ),
+        er_level = fct_relevel(er_level, "Low CK20 expression"),
+        her2_level = ifelse(
+          her2 > summarize_biomarker(her2),
+          "High HER2 expression", "Low HER2 expression"
+        ),
+        her2_level = fct_relevel(her2_level, "Low HER2 expression"),
+        gata3_level = ifelse(
+          gata3 > summarize_biomarker(gata3),
+          "High GATA3 expression", "Low GATA3 expression"
+        ),
+        gata3_level = fct_relevel(gata3_level, "Low GATA3 expression"),
+        uroplakin_level = ifelse(
+          uroplakin > summarize_biomarker(uroplakin),
+          "High Uroplakin expression", "Low Uroplakin expression"
+        ),
+        uroplakin_level = fct_relevel(uroplakin_level, "Low Uroplakin expression")
+    )
+
+glimpse(OUTCOME)
+```
+
+## CK5/6
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker = ck56)
+```
+
+### pT stage
+```{r}
+OUTCOME %>% summarize_nums(biomarker, pt)
+```
+
+### Tumor recurrence at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, recurrence_next)
+```
+
+### Tumor recurrence at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, recurrence_any)
+```
+
+### Tumor grade progression at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_grade_next)
+```
+
+### Tumor grade progression at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_grade_any)
+```
+
+### Tumor stage progression at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_stage_next)
+```
+
+### Tumor stage progression at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_stage_any)
+```
+
+## CD44
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker = cd44)
+```
+
+### pT stage
+```{r}
+OUTCOME %>% summarize_nums(biomarker, pt)
+```
+
+### Tumor recurrence at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, recurrence_next)
+```
+
+### Tumor recurrence at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, recurrence_any)
+```
+
+### Tumor grade progression at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_grade_next)
+```
+
+### Tumor grade progression at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_grade_any)
+```
+
+### Tumor stage progression at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_stage_next)
+```
+
+### Tumor stage progression at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_stage_any)
+```
+
+## CK20
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker = ck20)
+```
+
+### pT stage
+```{r}
+OUTCOME %>% summarize_nums(biomarker, pt)
+```
+
+### Tumor recurrence at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, recurrence_next)
+```
+
+### Tumor recurrence at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, recurrence_any)
+```
+
+### Tumor grade progression at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_grade_next)
+```
+
+### Tumor grade progression at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_grade_any)
+```
+
+### Tumor stage progression at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_stage_next)
+```
+
+### Tumor stage progression at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_stage_any)
+```
+
+## ER
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker = er)
+```
+
+### pT stage
+```{r}
+OUTCOME %>% summarize_nums(biomarker, pt)
+```
+
+### Tumor recurrence at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, recurrence_next)
+```
+
+### Tumor recurrence at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, recurrence_any)
+```
+
+### Tumor grade progression at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_grade_next)
+```
+
+### Tumor grade progression at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_grade_any)
+```
+
+### Tumor stage progression at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_stage_next)
+```
+
+### Tumor stage progression at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_stage_any)
+```
+
+## HER2
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker = her2)
+```
+
+### pT stage
+```{r}
+OUTCOME %>% summarize_nums(biomarker, pt)
+```
+
+### Tumor recurrence at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, recurrence_next)
+```
+
+### Tumor recurrence at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, recurrence_any)
+```
+
+### Tumor grade progression at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_grade_next)
+```
+
+### Tumor grade progression at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_grade_any)
+```
+
+### Tumor stage progression at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_stage_next)
+```
+
+### Tumor stage progression at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_stage_any)
+```
+
+## GATA3
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker = gata3)
+```
+
+### pT stage
+```{r}
+OUTCOME %>% summarize_nums(biomarker, pt)
+```
+
+### Tumor recurrence at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, recurrence_next)
+```
+
+### Tumor recurrence at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, recurrence_any)
+```
+
+### Tumor grade progression at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_grade_next)
+```
+
+### Tumor grade progression at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_grade_any)
+```
+
+### Tumor stage progression at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_stage_next)
+```
+
+### Tumor stage progression at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_stage_any)
+```
+
+## Uroplakin
+```{r}
+OUTCOME <- OUTCOME %>% 
+  mutate(biomarker = uroplakin)
+```
+
+### pT stage
+```{r}
+OUTCOME %>% summarize_nums(biomarker, pt)
+```
+
+### Tumor recurrence at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, recurrence_next)
+```
+
+### Tumor recurrence at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, recurrence_any)
+```
+
+### Tumor grade progression at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_grade_next)
+```
+
+### Tumor grade progression at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_grade_any)
+```
+
+### Tumor stage progression at next biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_stage_next)
+```
+
+### Tumor stage progression at any biopsy
+```{r}
+OUTCOME %>% summarize_nums(biomarker, progression_stage_any)
+```
+
+## Summary boxplots
+```{r}
+library(RColorBrewer)
+library(ggpubr)
+ASSOCIATION <- OUTCOME %>% 
+  gather(biomarker, expression, ck56:uroplakin, na.rm = TRUE) %>% 
+  filter(biomarker != "gata3" & biomarker != "er") %>% 
+  mutate(
+    biomarker = fct_recode(
+      biomarker,
+      "CK5/6" = "ck56",
+      "CD44" = "cd44",
+      "CK20" = "ck20",
+      "HER2" = "her2",
+      "Uroplakin" = "uroplakin"
+    )
+  )
+glimpse(ASSOCIATION)
+```
+
+### Overall expression
+```{r}
+Plot_A <- ggplot(ASSOCIATION, aes(x = biomarker, y = expression, fill = biomarker)) +
+  geom_boxplot() +
+  scale_fill_manual(values = rep(brewer.pal(3, "Blues"), times = 4)) +
+  labs(
+    x = "", y = "",
+    title = "Distribution of biomarkers expression",
+    tag = "A"
+  ) +
+  theme(
+    plot.caption = element_text(hjust = 0.5, size = 14),
+    legend.position = "None"
+  )
+
+Plot_A
+```
+
+```{r}
+## A function to plot boxplots of biomarkers expression by outcome
+plot_association <- function(data, biomarker, expression, outcome) {
+  
+  # Data
+  biomarker = enquo(biomarker)
+  expression = enquo(expression)
+  outcome = enquo(outcome)
+  df <- data %>% 
+    select(
+      biomarker = !! biomarker,
+      expression = !! expression,
+      outcome = !! outcome
+    )
+  
+  # Estimating (adjusted) P values
+  pfig <- ggpubr::compare_means(
+    expression ~ outcome,
+    data = df,
+    group.by = "biomarker",
+    p.adjust.method = "bonferroni"
+  ) %>% 
+    select(p.adj) %>% 
+    unlist() %>% 
+    formatC(digits = 2, format = "fg", flag = "#")
+  
+  # Plotting
+  g <- df %>% 
+    filter(!is.na(outcome)) %>% 
+    ggplot(aes(x = biomarker, y = expression, fill = outcome)) +
+      geom_boxplot() +
+      scale_fill_brewer(palette = "Blues") +
+      labs(x = "", y = "") +
+      theme(legend.position = "none") +
+      annotate("label", label = paste0("P=", pfig), x = 1:5, y = 95)
+  
+  return(g)
+  
+}
+```
+
+### Marker expression and outcome
+```{r}
+Plot_B <- ASSOCIATION %>% plot_association(biomarker, expression, recurrence_next) +
+  labs(title = "Tumor recurrence at next biopsy", tag = "B")
+
+
+```
+
+### Tumor recurrence at any biopsy
+```{r}
+Plot_C <- ASSOCIATION %>% plot_association(biomarker, expression, recurrence_any) +
+  labs(title = "Tumor recurrence at any biopsy", tag = "C")
+
+Plot_C
+```
+
+### Tumor grade progression at next biopsy
+```{r}
+Plot_D <- ASSOCIATION %>% plot_association(biomarker, expression, progression_grade_next) +
+  labs(title = "Tumor grade progression at next biopsy", tag = "D")
+
+Plot_D
+```
+
+### Tumor grade progression at any biopsy
+```{r}
+Plot_E <- ASSOCIATION %>% plot_association(biomarker, expression, progression_grade_any) +
+  labs(title = "Tumor grade progression at any biopsy", tag = "E")
+
+Plot_E
+```
+
+### Tumor stage progression at next biopsy
+```{r}
+Plot_F <- ASSOCIATION %>% plot_association(biomarker, expression, progression_stage_next) +
+  labs(title = "Tumor stage progression at next biopsy", tag = "F")
+
+Plot_F
+```
+
+### Tumor stage progression at any biopsy
+```{r}
+Plot_G <- ASSOCIATION %>% plot_association(biomarker, expression, progression_stage_any) +
+  labs(title = "Tumor stage progression at any biopsy", tag = "G")
+
+Plot_G
+```
+
+### Combined plots
+**Markers expression and outcome.** A) Distribution of markers expression with percentage of positive tumor cells at each TMA spot in the y axis. B-G) Association of outcome and markers expression, with median percentage of positive tumor cells per case in the y axis. Lighter boxplots correspond to presence of the event (i.e., recurrence or progression) while darker boxplots correspond to absence of the event. Labels on top of the boxplots correspond to adjusted (Bonferroni's method) P values from Mann-Whitney's U tests.
+
+```{r}
+options(repr.plot.width = 12, repr.plot.height = 20)
+
+Plot_Panel <- gridExtra::grid.arrange(
+  Plot_A, Plot_B, Plot_C, Plot_D, Plot_E, Plot_F, Plot_G,
+  ncol = 1
+)
+```
+
+```{r}
+# Saving the plot
+ggsave(
+  filename = "Figs/BL-NMIBUC-Association.png",
+  plot = Plot_Panel,
+  width = 12,
+  height = 20,
+  units = "in"
+)
+```
+
+## Principal Component Analysis
+```{r}
+# Creating the dataset for PCA
+DF_PCA <- DF %>% 
+  select(
+    "CK5/6" = ck56,
+    "CD44" = cd44,
+    "CK20" = ck20,
+    "HER2" = her2,
+    "Uroplakin" = uroplakin,
+    progression_stage_any:progression_grade_next
+  ) %>% 
+  drop_na()
+
+# Building the PCA model
+pca_mdl <- DF_PCA %>% 
+  select("CK5/6":"Uroplakin") %>% 
+  prcomp(center = TRUE, scale. = TRUE)
+
+summary(pca_mdl)
+```
+
+```{r}
+# Reseting to default values the plot sizes
+options(repr.plot.width = 7, repr.plot.height = 7)
+
+# A function for biplots
+pca_biplot <- function(data, group) {
+  g <- factoextra::fviz_pca(
+    data,
+    col.ind = group,
+    geom = "point",
+    palette = c("steelblue", "darkgray"),
+    addEllipses = TRUE,
+    ellipse.alpha = 0.25,
+    repel = TRUE,
+    ggtheme = theme_grey()
+  ) + theme(legend.position = "none")
+  
+  return(g)
+}
+```
+
+### Tumor recurrence at next biopsy
+```{r}
+PCA_A <- pca_biplot(pca_mdl, DF_PCA$recurrence_next) +
+  labs(title = "Tumor recurrence at next biopsy", tag = "A")
+
+PCA_A
+```
+
+### Tumor recurrence at any biopsy
+```{r}
+PCA_B <- pca_biplot(pca_mdl, DF_PCA$recurrence_any) +
+  labs(title = "Tumor recurrence at any biopsy", tag = "B")
+
+PCA_B
+```
+
+### Tumor grade progression at next biopsy
+```{r}
+PCA_C <- pca_biplot(pca_mdl, DF_PCA$progression_grade_next) +
+  labs(title = "Tumor grade progression at next biopsy", tag = "C")
+
+PCA_C
+```
+
+### Tumor grade progression at any biopsy
+```{r}
+PCA_D <- pca_biplot(pca_mdl, DF_PCA$progression_grade_any) +
+  labs(title = "Tumor grade progression at any biopsy", tag = "D")
+
+PCA_D
+```
+
+### Tumor stage progression at next biopsy
+```{r}
+PCA_E <- pca_biplot(pca_mdl, DF_PCA$progression_stage_next) +
+  labs(title = "Tumor stage progression at next biopsy", tag = "E")
+
+PCA_E
+```
+
+### Tumor stage progression at any biopsy
+```{r}
+PCA_F <- pca_biplot(pca_mdl, DF_PCA$progression_stage_any) +
+  labs(title = "Tumor stage progression at any biopsy", tag = "F")
+
+PCA_F
+```
+
+### Combined plots
+Principal component analysis of markers expression and outcome. Biplots of the first 2 principal components (PC1 and PC2) with superimposed ellipses by outcome. Blue ellipses correspond to presence of the event (i.e., recurrence or progression) while gray ellipses correspond to absence of the event.
+
+```{r}
+options(repr.plot.width = 12, repr.plot.height = 16)
+
+Plot_PCA <- gridExtra::grid.arrange(
+  PCA_A, PCA_B, PCA_C, PCA_D, PCA_E, PCA_F, 
+  ncol = 2
+)
+```
+
+```{r}
+ggsave(
+  filename = "Figs/BL-NMIBUC-PCA.png",
+  plot = Plot_PCA,
+  width = 12,
+  height = 16,
+  units = "in"
+)
+```
