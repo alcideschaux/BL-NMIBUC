@@ -2,7 +2,7 @@
 
 ## Material and methods
 ### Patient selection and TMA building
-The dataset was composed of 411 tissue microarray (TMA) spots of non-muscle invasive bladder urothelial carcinoma (NMIBUC) and paired normal urothelium built from 60 pathologic cases, which corresponded to 193 patients with NMIBUC. We built the TMAs using a previously described method.
+The dataset was composed of 411 tissue microarray (TMA) spots of non-muscle invasive bladder urothelial carcinoma (NMIBUC) and paired normal urothelium built from 193 pathologic cases, which corresponded to 60 patients with NMIBUC. We built the TMAs using a previously described method.
 
 ### Immunohistochemistry
 We evaluated the immunohistochemical expression of basal (CK5/6 and CD44) and luminal markers (CK20, GATA3, ER, HER2, and Uroplakin). For each marker, the percentage of positive tumor cells was recorded at each TMA spot.
