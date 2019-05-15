@@ -645,12 +645,12 @@ OR_tbl <- function(data, formula, marker, outcome, ...) {
 
 ### Tumor recurrence at next biopsy
 ```{r}
-outcome_str <- "Tumor recurrence at next biopsy diagnosis"
+outcome_str <- "Tumor recurrence at next biopsy"
 outcome_ck56 <- OUTCOME %>% OR_tbl(recurrence_next ~ ck56 + pt, "CK5/6", outcome_str)
 outcome_ck20 <- OUTCOME %>% OR_tbl(recurrence_next ~ ck20 + pt, "CK20", outcome_str)
 outcome_cd44 <- OUTCOME %>% OR_tbl(recurrence_next ~ cd44 + pt, "CD44", outcome_str)
 outcome_her2 <- OUTCOME %>% OR_tbl(recurrence_next ~ her2 + pt, "Her2", outcome_str)
-outcome_uroplk <- OUTCOME %>% OR_tbl(recurrence_next ~ uroplakin + pt, "Uroplakin II", outcome_str)
+outcome_uroplk <- OUTCOME %>% OR_tbl(recurrence_next ~ uroplakin + pt, "Uroplakin", outcome_str)
 
 recurrence_next_marker <- bind_rows(
     outcome_uroplk, outcome_her2, outcome_ck20, outcome_cd44, outcome_ck56
@@ -661,12 +661,12 @@ print(recurrence_next_marker)
 
 ### Tumor recurrence at any biopsy
 ```{r}
-outcome_str <- "Tumor recurrence at any subsequent biopsy diagnosis"
+outcome_str <- "Recurrence at any biopsy"
 outcome_ck56 <- OUTCOME %>% OR_tbl(recurrence_any ~ ck56 + pt, "CK5/6", outcome_str)
 outcome_ck20 <- OUTCOME %>% OR_tbl(recurrence_any ~ ck20 + pt, "CK20", outcome_str)
 outcome_cd44 <- OUTCOME %>% OR_tbl(recurrence_any ~ cd44 + pt, "CD44", outcome_str)
 outcome_her2 <- OUTCOME %>% OR_tbl(recurrence_any ~ her2 + pt, "Her2", outcome_str)
-outcome_uroplk <- OUTCOME %>% OR_tbl(recurrence_any ~ uroplakin + pt, "Uroplakin II", outcome_str)
+outcome_uroplk <- OUTCOME %>% OR_tbl(recurrence_any ~ uroplakin + pt, "Uroplakin", outcome_str)
 
 recurrence_any_marker <- bind_rows(
     outcome_uroplk, outcome_her2, outcome_ck20, outcome_cd44, outcome_ck56
@@ -677,12 +677,12 @@ print(recurrence_any_marker)
 
 ### Tumor stage progression at next biopsy
 ```{r}
-outcome_str <- "Tumor stage progression at next biopsy diagnosis"
+outcome_str <- "Tumor stage progression at next biopsy"
 outcome_ck56 <- OUTCOME %>% OR_tbl(progression_stage_next ~ ck56 + pt, "CK5/6", outcome_str)
 outcome_ck20 <- OUTCOME %>% OR_tbl(progression_stage_next ~ ck20 + pt, "CK20", outcome_str)
 outcome_cd44 <- OUTCOME %>% OR_tbl(progression_stage_next ~ cd44 + pt, "CD44", outcome_str)
 outcome_her2 <- OUTCOME %>% OR_tbl(progression_stage_next ~ her2 + pt, "Her2", outcome_str)
-outcome_uroplk <- OUTCOME %>% OR_tbl(progression_stage_next ~ uroplakin + pt, "Uroplakin II", outcome_str)
+outcome_uroplk <- OUTCOME %>% OR_tbl(progression_stage_next ~ uroplakin + pt, "Uroplakin", outcome_str)
 
 progression_stage_next_marker <- bind_rows(
     outcome_uroplk, outcome_her2, outcome_ck20, outcome_cd44, outcome_ck56
@@ -693,12 +693,12 @@ print(progression_stage_next_marker)
 
 ### Tumor stage progression at any biopsy
 ```{r}
-outcome_str <- "Tumor stage progression at any subsequent biopsy diagnosis"
+outcome_str <- "Tumor stage progression at any biopsy"
 outcome_ck56 <- OUTCOME %>% OR_tbl(progression_stage_any ~ ck56 + pt, "CK5/6", outcome_str)
 outcome_ck20 <- OUTCOME %>% OR_tbl(progression_stage_any ~ ck20 + pt, "CK20", outcome_str)
 outcome_cd44 <- OUTCOME %>% OR_tbl(progression_stage_any ~ cd44 + pt, "CD44", outcome_str)
 outcome_her2 <- OUTCOME %>% OR_tbl(progression_stage_any ~ her2 + pt, "Her2", outcome_str)
-outcome_uroplk <- OUTCOME %>% OR_tbl(progression_stage_any ~ uroplakin + pt, "Uroplakin II", outcome_str)
+outcome_uroplk <- OUTCOME %>% OR_tbl(progression_stage_any ~ uroplakin + pt, "Uroplakin", outcome_str)
 
 progression_stage_any_marker <- bind_rows(
     outcome_uroplk, outcome_her2, outcome_ck20, outcome_cd44, outcome_ck56
@@ -709,12 +709,12 @@ print(progression_stage_any_marker)
 
 ### Tumor grade progression at next biopsy
 ```{r}
-outcome_str <- "Tumor grade progression at next biopsy diagnosis"
+outcome_str <- "Tumor grade progression at next biopsy"
 outcome_ck56 <- OUTCOME %>% OR_tbl(progression_grade_next ~ ck56 + pt, "CK5/6", outcome_str)
 outcome_ck20 <- OUTCOME %>% OR_tbl(progression_grade_next ~ ck20 + pt, "CK20", outcome_str)
 outcome_cd44 <- OUTCOME %>% OR_tbl(progression_grade_next ~ cd44 + pt, "CD44", outcome_str)
 outcome_her2 <- OUTCOME %>% OR_tbl(progression_grade_next ~ her2 + pt, "Her2", outcome_str)
-outcome_uroplk <- OUTCOME %>% OR_tbl(progression_grade_next ~ uroplakin + pt, "Uroplakin II", outcome_str)
+outcome_uroplk <- OUTCOME %>% OR_tbl(progression_grade_next ~ uroplakin + pt, "Uroplakin", outcome_str)
 
 progression_grade_next_marker <- bind_rows(
     outcome_uroplk, outcome_her2, outcome_ck20, outcome_cd44, outcome_ck56
@@ -725,12 +725,12 @@ print(progression_grade_next_marker)
 
 ### Tumor grade progression at any biopsy
 ```{r}
-outcome_str <- "Tumor grade progression at any subsequent biopsy diagnosis"
+outcome_str <- "Tumor grade progression at any biopsy"
 outcome_ck56 <- OUTCOME %>% OR_tbl(progression_grade_any ~ ck56 + pt, "CK5/6", outcome_str)
 outcome_ck20 <- OUTCOME %>% OR_tbl(progression_grade_any ~ ck20 + pt, "CK20", outcome_str)
 outcome_cd44 <- OUTCOME %>% OR_tbl(progression_grade_any ~ cd44 + pt, "CD44", outcome_str)
 outcome_her2 <- OUTCOME %>% OR_tbl(progression_grade_any ~ her2 + pt, "Her2", outcome_str)
-outcome_uroplk <- OUTCOME %>% OR_tbl(progression_grade_any ~ uroplakin + pt, "Uroplakin II", outcome_str)
+outcome_uroplk <- OUTCOME %>% OR_tbl(progression_grade_any ~ uroplakin + pt, "Uroplakin", outcome_str)
 
 progression_grade_any_marker <- bind_rows(
     outcome_uroplk, outcome_her2, outcome_ck20, outcome_cd44, outcome_ck56
@@ -758,38 +758,25 @@ Forest plots of biomarkers by outcome. Odds ratios (dots) with 95% confidence in
 ```{r}
 options(repr.plot.width = 10, repr.plot.height = 10)
 
-outcome_marker <- outcome_marker %>% 
-    mutate(
-        outcome = fct_relevel(
-            outcome,
-            "Tumor recurrence at next biopsy diagnosis",
-            "Tumor recurrence at any subsequent biopsy diagnosis",
-            "Tumor grade progression at next biopsy diagnosis",
-            "Tumor grade progression at any subsequent biopsy diagnosis",
-            "Tumor stage progression at next biopsy diagnosis",
-            "Tumor stage progression at any subsequent biopsy diagnosis"
-        )
-    )
-
-OR_Plot <- ggplot(outcome_marker, aes(x = marker, y = or, ymin = conf.low, ymax = conf.high)) +
+g <- ggplot(outcome_marker, aes(x = marker, y = or, ymin = conf.low, ymax = conf.high)) +
     geom_pointrange() +
     geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) +
     geom_hline(yintercept = 1, linetype = 2) +
     facet_wrap(~ outcome, ncol = 2) +
     coord_flip() +
-    labs(x = NULL, y = NULL) +
-    theme(
-        strip.text.x = element_text(face = "bold", hjust = 0, size = 10)
-    )
+    labs(x = "", y = "")
 
-OR_Plot
+OR_plot <- gridExtra::grid.arrange(
+    g,
+    ncol = 1
+)
 ```
 
 
 ```{r}
 ggsave(
   filename = "Figs/BL-NMIBUC-OR.png",
-  plot = OR_Plot,
+  plot = OR_plot,
   width = 10,
   height = 10,
   units = "in"
