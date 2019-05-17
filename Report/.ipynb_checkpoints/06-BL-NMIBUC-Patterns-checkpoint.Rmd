@@ -91,7 +91,7 @@ plot_bar <- function(data, pattern, outcome) {
     annotate("label", label = paste0("P=", pval), x = 1.5, y = 1) +
     theme(
         legend.position = "none",
-        plot.title = element_text(face = "bold", size = 12)
+        plot.title = element_text(face = "bold", size = 13)
     )
   
   # Returning the plot object
