@@ -3,6 +3,7 @@
 ```{r}
 # Libraries
 suppressPackageStartupMessages(library(tidyverse))
+library(ggcorrplot)
 
 # Global
 options(warn = -1)
@@ -132,7 +133,7 @@ DF %>%
     summarize_nums(Expression, Biomarker)
 ```
 
-### Biormarker and histology
+### Biomarker and histology
 #### CK5/6
 ```{r}
 DF %>% 
@@ -203,7 +204,7 @@ DF %>%
     summarize_nums(marker, feature)
 ```
 
-### Biormarker and stage
+### Biomarker and stage
 #### CK5/6
 ```{r}
 DF %>% 
@@ -272,4 +273,65 @@ DF %>%
         feature = pt_stage
     ) %>% 
     summarize_nums(marker, feature)
+```
+
+### Correlation between biomarkers
+
+```{r}
+# A function to evaluate correlation between markers
+COR <- function(data, x, y, label = NULL, ...) {
+    # Data
+    x = enquo(x)
+    y = enquo(y)
+    df <- data %>% 
+        select(x = !! x, y = !! y)
+    
+    # Correlation test
+    cor_tbl <- cor.test(df$x, df$y, ...) %>% 
+        broom::tidy() %>% 
+        mutate(
+            label = label,
+            coef = round(estimate, digits = 2),
+            conf.low = round(conf.low, digits = 2),
+            conf.high = round(conf.high, digits = 2),
+            p.value = formatC(p.value, digits = 2, format = "fg")
+        ) %>% 
+        select(
+            label, coef, conf.low, conf.high, p.value
+        )
+    
+    # Returning the results
+    return(cor_tbl)
+}
+```
+
+```{r}
+# Basal markers
+ck56_cd44 <- DF %>% COR(ck56, cd44, "CK5/6 vs CD44")
+
+# Luminal markers
+ck20_her2 <- DF %>% COR(ck20, her2, "CK20 vs HER2/neu")
+ck20_uroplakin <- DF %>% COR(ck20, uroplakin, "CK20 vs Uroplakin II")
+her2_uroplakin <- DF %>% COR(her2, uroplakin, "HER2/neu vs Uroplakin II")
+
+# Basal vs luminal markers
+ck56_ck20 <- DF %>% COR(ck56, ck20, "CK5/6 vs CK20")
+ck56_her2 <- DF %>% COR(ck56, her2, "CK5/6 vs HER2/neu")
+ck56_uroplakin <- DF %>% COR(ck56, uroplakin, "CK5/6 vs Uroplakin II")
+cd44_ck20 <- DF %>% COR(cd44, ck20, "CD44 vs CK20")
+cd44_her2 <- DF %>% COR(cd44, her2, "CD44 vs HER2/neu")
+cd44_uroplakin <- DF %>% COR(cd44, uroplakin, "CD44 vs Uroplakin II")
+
+bind_rows(
+    ck56_cd44,
+    ck20_her2,
+    ck20_uroplakin,
+    her2_uroplakin,
+    ck56_ck20,
+    ck56_her2,
+    ck56_uroplakin,
+    cd44_ck20,
+    cd44_her2,
+    cd44_uroplakin
+) %>% print()
 ```
